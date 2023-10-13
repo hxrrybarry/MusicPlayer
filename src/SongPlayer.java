@@ -40,6 +40,10 @@ public class SongPlayer {
         }
     }
 
+    public void PlaylistMenuSelection() {
+        // TODO: menu selection screen for playlists (playing and shuffling)
+    }
+
     public String[] ShuffleCurrentPlaylist() {
         String[] placeholderPlaylist = new String[currentPlaylist.length];
 

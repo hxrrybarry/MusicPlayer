@@ -3,26 +3,35 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * SongPlayer.java
+ *
+ * This file contains the playlist class
+ * Other Files: Main.java
+ *
+ * @author Harrison O'Leary
+ * Date: November 10, 2023
+ */
+
 public class SongPlayer {
     private int currentSongIndex;
     private String currentSongName;
-    private String currentPlaylistName;
-    private String currentPlaylistLocation;
-    private String[] currentPlaylist;
-    private final String user;
-    private final Map<String, File> playlists;
+    public File currentPlaylist;
+    private final String playlistDirectoryPath;
+    public final Map<String, File> playlists;
+    public String songArtist;
 
-    public SongPlayer(String u) {
-        this.user = u;
+    public SongPlayer(String user) {
+        this.playlistDirectoryPath = "C:\\Users\\" + user + "\\Playlists";
         this.playlists  = GetPlaylists();
     }
 
     private Map<String, File> GetPlaylists() {
-        // retrieve all directorys within the default playlist folder
+        // retrieve all directories within the default playlist folder
         // each directory represents a different playlist containing audio files
         Map<String, File> playlistDictionary = new HashMap<>();
 
-        File playlistDirectory = new File("C:\\Users\\" + user + "\\Playlists");
+        File playlistDirectory = new File(playlistDirectoryPath);
         File[] folders = playlistDirectory.listFiles();
 
         // link a file path to an id so the user can easily select a playlist
@@ -40,30 +49,80 @@ public class SongPlayer {
         }
     }
 
-    public void PlaylistMenuSelection() {
-        // TODO: menu selection screen for playlists (playing and shuffling)
+    public String GetAllSongs() {
+        // acquire all playlists in the playlist directory
+        File[] currentPlaylists = new File(playlistDirectoryPath).listFiles();
+
+        // loop through all folders in currentPlaylists and then retrieve all files-
+        // - within that
+        StringBuilder allSongs = new StringBuilder();
+        for (File playlist : currentPlaylists) {
+            // allSongs.append('\n' + playlist.getName() + ":\n");
+            File[] songs = playlist.listFiles();
+
+            // loop through each file (song) and append to a string
+            for (File song : songs) {
+                String[] songParts = song.getName().split("-");
+                String artist = songParts[0];
+                String songName = songParts[1];
+                int playCount = new Random().nextInt(1000000000);
+
+                allSongs.append(artist + '-' + songName + ',' + " Views: " + playCount + '\n');
+            }
+        }
+
+        return allSongs.toString();
     }
 
-    public String[] ShuffleCurrentPlaylist() {
-        String[] placeholderPlaylist = new String[currentPlaylist.length];
+    public String AddSong(String songPath) {
+        File song = new File(songPath);
+
+        // file.renameTo() also works to move / copy files to a given location
+        boolean wasFileMovingSuccess = song.renameTo(new File(currentPlaylist.getPath() + '\\' + song.getName()));
+
+        if (wasFileMovingSuccess) {
+            return "Successfully added song \"" + song.getName() + "\" to playlist \"" + currentPlaylist.getName() + '"';
+        }
+        else {
+            return "Unable to add song!";
+        }
+    }
+
+    public String RemoveSong(String songName) {
+        File song = new File(currentPlaylist.getPath() + '\\' + songName);
+
+        boolean wasFileDeletionSuccess = song.delete();
+
+        if (wasFileDeletionSuccess) {
+            return "Successfully deleted song \"" + songName + '"';
+        }
+        else {
+            return "Unable to delete song!";
+        }
+    }
+
+    public File[] ShuffleCurrentPlaylist() {
+        File[] songs = currentPlaylist.listFiles();
+        File[] placeholderPlaylist = new File[songs.length];
 
         // works by having an initially identical placeholder playlist and-
         // -appending to it by picking a random index from the real playlist and removing that item-
         // -until all of them are gone, and we are left with a shuffled playlist
         Random rnd = new Random();
-        for (int i = 0; i < currentPlaylist.length; i++) {
-            int randomIndex = rnd.nextInt(currentPlaylist.length);
-            String item = "";
+        for (int i = 0; i < songs.length; i++) {
+            int randomIndex = rnd.nextInt(songs.length);
+            File item = null;
 
             // due to the playlist being an array, it is not possible to "remove" the items
-            // therefore we will replace the picked element with an empty string-
+            // therefore we will replace the chosen element with an empty string-
             // -and we will pick a new element if an empty string is detected
-            while (item.isEmpty()) {
-                item = currentPlaylist[randomIndex];
+            while (item == null) {
+                randomIndex = rnd.nextInt(songs.length);
+                item = songs[randomIndex];
             }
 
             placeholderPlaylist[i] = item;
-            currentPlaylist[randomIndex] = "";
+            songs[randomIndex] = null;
         }
 
         return placeholderPlaylist;

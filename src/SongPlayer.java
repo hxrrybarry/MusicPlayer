@@ -14,8 +14,6 @@ import java.util.Random;
  */
 
 public class SongPlayer {
-    private int currentSongIndex;
-    private String currentSongName;
     public File currentPlaylist;
     private final String playlistDirectoryPath;
     public final Map<String, File> playlists;
